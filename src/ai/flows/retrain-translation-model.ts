@@ -66,27 +66,25 @@ const retrainTranslationModelFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const result = await retrainTranslationModelPrompt.generate({input});
+      const result = await retrainTranslationModelPrompt(input);
       const toolResponse = result.toolRequest?.tool.output;
 
-      if (!toolResponse) {
-        // If the model didn't use the tool, we might want to handle it.
-        // For this case, let's assume it should always be used.
-        const textResponse = result.text;
-        if (textResponse) {
-          return {
-            success: false,
-            message: `Model did not perform retraining. It responded with: ${textResponse}`,
-          };
-        }
-        throw new Error('Retraining tool was not called by the model.');
+      if (toolResponse) {
+        return {
+            success: toolResponse.success,
+            message: toolResponse.message,
+        };
       }
       
-      // Adapt the tool's output to the flow's output schema
-      return {
-        success: toolResponse.success,
-        message: toolResponse.message,
-      };
+      const textResponse = result.text;
+      if (textResponse) {
+        return {
+          success: false,
+          message: `Model did not perform retraining. It responded with: ${textResponse}`,
+        };
+      }
+      throw new Error('Retraining tool was not called by the model and no text response was provided.');
+
     } catch (error: any) {
       console.error('Error retraining translation model:', error);
       return {

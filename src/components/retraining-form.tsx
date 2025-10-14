@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -68,16 +69,18 @@ export function RetrainingForm() {
   }
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle className="font-headline">Submit a Correction</CardTitle>
-        <CardDescription>
-          Provide the original text and your improved English translation.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <Card className="shadow-2xl shadow-primary/10">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl">
+              Submit a Correction
+            </CardTitle>
+            <CardDescription>
+              Provide the original text and your improved English translation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <FormField
               control={form.control}
               name="originalText"
@@ -112,24 +115,26 @@ export function RetrainingForm() {
                 </FormItem>
               )}
             />
+          </CardContent>
+          <CardFooter>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full"
+              className="w-full text-lg py-6"
               size="lg"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 'Submit Correction'
               )}
             </Button>
-          </form>
-        </Form>
-      </CardContent>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }

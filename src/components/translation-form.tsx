@@ -8,10 +8,11 @@ import {
   FileImage,
   FileText,
   Upload,
+  ArrowRight,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -96,170 +97,173 @@ export function TranslationForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="shadow-lg">
-        <CardContent className="p-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            {/* Input Column */}
-            <div className="p-6 border-b md:border-b-0 md:border-r">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-headline text-xl font-semibold">
-                  Original Document
-                </h2>
-                <Select
-                  value={sourceLanguage}
-                  onValueChange={(value: Language) => setSourceLanguage(value)}
-                  name="sourceLanguage"
-                >
-                  <SelectTrigger className="w-auto md:w-[180px]">
-                    <Languages className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Nepali">Nepali</SelectItem>
-                    <SelectItem value="Sinhalese">Sinhalese</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Tabs
-                defaultValue="text"
-                className="w-full"
-                onValueChange={(value) => setActiveTab(value as Tab)}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Input Column */}
+        <Card className="shadow-2xl shadow-primary/10">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="font-headline text-2xl">
+                Original Document
+              </CardTitle>
+              <Select
+                value={sourceLanguage}
+                onValueChange={(value: Language) => setSourceLanguage(value)}
+                name="sourceLanguage"
               >
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="text">
-                    <BookText className="mr-2 h-4 w-4" />
-                    Text
-                  </TabsTrigger>
-                  <TabsTrigger value="image">
-                    <FileImage className="mr-2 h-4 w-4" />
-                    Image
-                  </TabsTrigger>
-                  <TabsTrigger value="pdf">
-                    <FileText className="mr-2 h-4 w-4" />
-                    PDF
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="text" className="mt-4">
-                  <Textarea
-                    name="text"
-                    placeholder="Enter or paste your text here..."
-                    className="min-h-[250px] text-base resize-y"
-                    value={sourceText}
-                    onChange={(e) => {
-                      setSourceText(e.target.value);
-                      setImageFile(null);
-                      setPdfFile(null);
-                      setImagePreview(null);
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="image" className="mt-4">
-                  <div className="min-h-[250px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-4 text-center">
-                    {imagePreview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imagePreview}
-                        alt="Image preview"
-                        className="max-h-[200px] rounded-md object-contain"
-                      />
-                    ) : (
-                      <div className="space-y-2">
-                        <FileImage className="h-10 w-10 mx-auto text-muted-foreground" />
-                        <p className="text-muted-foreground">
-                          Upload an image to extract text.
-                        </p>
-                      </div>
-                    )}
-                    <Input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="mt-4"
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="pdf" className="mt-4">
-                  <div className="min-h-[250px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-4 text-center">
-                    {pdfFile ? (
-                      <div className="space-y-2">
-                        <FileText className="h-10 w-10 mx-auto text-muted-foreground" />
-                        <p className="font-medium">{pdfFile.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Ready to translate.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
-                        <p className="text-muted-foreground">
-                          Upload a PDF to extract text.
-                        </p>
-                      </div>
-                    )}
-                    <Input
-                      id="pdf-upload"
-                      type="file"
-                      accept=".pdf"
-                      onChange={handlePdfChange}
-                      className="mt-4"
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-
-              <Button
-                type="submit"
-                disabled={isSubmitDisabled}
-                className="w-full mt-4"
-                size="lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Translating...
-                  </>
-                ) : (
-                  'Translate'
-                )}
-              </Button>
+                <SelectTrigger className="w-auto md:w-[180px] bg-secondary border-0">
+                  <Languages className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Nepali">Nepali</SelectItem>
+                  <SelectItem value="Sinhalese">Sinhalese</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Output Column */}
-            <div className="p-6 bg-muted/20">
-              <h2 className="font-headline text-xl font-semibold mb-4">
-                Translated Text
-              </h2>
-              <Card className="min-h-[362px] bg-background">
-                <CardContent className="p-4">
-                  {isLoading ? (
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-4/5" />
-                    </div>
-                  ) : error ? (
-                    <Alert variant="destructive">
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : translatedText ? (
-                    <p className="text-base whitespace-pre-wrap">
-                      {translatedText}
-                    </p>
+          </CardHeader>
+          <CardContent>
+            <Tabs
+              defaultValue="text"
+              className="w-full"
+              onValueChange={(value) => setActiveTab(value as Tab)}
+            >
+              <TabsList className="grid w-full grid-cols-3 bg-secondary">
+                <TabsTrigger value="text">
+                  <BookText className="mr-2 h-4 w-4" />
+                  Text
+                </TabsTrigger>
+                <TabsTrigger value="image">
+                  <FileImage className="mr-2 h-4 w-4" />
+                  Image
+                </TabsTrigger>
+                <TabsTrigger value="pdf">
+                  <FileText className="mr-2 h-4 w-4" />
+                  PDF
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="text" className="mt-4">
+                <Textarea
+                  name="text"
+                  placeholder="Enter or paste your text here..."
+                  className="min-h-[250px] text-base resize-y bg-background"
+                  value={sourceText}
+                  onChange={(e) => {
+                    setSourceText(e.target.value);
+                    setImageFile(null);
+                    setPdfFile(null);
+                    setImagePreview(null);
+                  }}
+                />
+              </TabsContent>
+              <TabsContent value="image" className="mt-4">
+                <div className="min-h-[250px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-4 text-center hover:border-primary transition-colors">
+                  {imagePreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={imagePreview}
+                      alt="Image preview"
+                      className="max-h-[200px] rounded-md object-contain"
+                    />
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full pt-20 text-center text-muted-foreground">
-                      <Languages className="h-10 w-10 mb-2" />
-                      <p>Your English translation will appear here.</p>
+                    <div className="space-y-2">
+                      <FileImage className="h-10 w-10 mx-auto text-muted-foreground" />
+                      <p className="text-muted-foreground">
+                        Upload an image to extract text.
+                      </p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="mt-4 max-w-sm"
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent value="pdf" className="mt-4">
+                <div className="min-h-[250px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-4 text-center hover:border-primary transition-colors">
+                  {pdfFile ? (
+                    <div className="space-y-2">
+                      <FileText className="h-10 w-10 mx-auto text-primary" />
+                      <p className="font-medium">{pdfFile.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Ready to translate.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
+                      <p className="text-muted-foreground">
+                        Upload a PDF to extract text.
+                      </p>
+                    </div>
+                  )}
+                  <Input
+                    id="pdf-upload"
+                    type="file"
+                    accept=".pdf"
+                    onChange={handlePdfChange}
+                    className="mt-4 max-w-sm"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Button
+              type="submit"
+              disabled={isSubmitDisabled}
+              className="w-full mt-6 text-lg py-6"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Translating...
+                </>
+              ) : (
+                <>
+                  Translate to English <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Output Column */}
+        <Card className="min-h-full bg-secondary/50">
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl">
+              English Translation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3 pt-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            ) : error ? (
+              <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : translatedText ? (
+              <p className="text-base whitespace-pre-wrap font-body leading-relaxed">
+                {translatedText}
+              </p>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full pt-20 text-center text-muted-foreground">
+                <Languages className="h-12 w-12 mb-4" />
+                <p className="text-lg">Your English translation will appear here.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </form>
   );
 }
