@@ -29,14 +29,16 @@ export async function retrainTranslationModel(
   return retrainTranslationModelFlow(input);
 }
 
-const retrainTranslationModelTool = ai.defineTool({
-  name: 'retrainTranslationModelTool',
-  description: 'Retrains the translation model with provided original and translated text pairs to improve accuracy.',
-  inputSchema: RetrainTranslationModelInputSchema,
-  outputSchema: z.object({
-    success: z.boolean().describe('Indicates if the retraining data was successfully processed.'),
-    message: z.string().describe('A message describing the result of the retraining attempt.'),
-  }),
+const retrainTranslationModelTool = ai.defineTool(
+  {
+    name: 'retrainTranslationModelTool',
+    description: 'Retrains the translation model with provided original and translated text pairs to improve accuracy.',
+    inputSchema: RetrainTranslationModelInputSchema,
+    outputSchema: z.object({
+      success: z.boolean().describe('Indicates if the retraining data was successfully processed.'),
+      message: z.string().describe('A message describing the result of the retraining attempt.'),
+    }),
+  },
   async (input) => {
     // Simulate retraining the model with the new data.
     // In a real implementation, this would involve updating the model weights.
@@ -47,8 +49,8 @@ const retrainTranslationModelTool = ai.defineTool({
       success: true,
       message: 'Model retraining simulated successfully.',
     };
-  },
-});
+  }
+);
 
 const retrainTranslationModelPrompt = ai.definePrompt({
   name: 'retrainTranslationModelPrompt',
@@ -62,18 +64,28 @@ const retrainTranslationModelFlow = ai.defineFlow(
     inputSchema: RetrainTranslationModelInputSchema,
     outputSchema: RetrainTranslationModelOutputSchema,
   },
-  async input => {
+  async (input) => {
     try {
-      const result = await retrainTranslationModelPrompt(input);
-      // Ensure the tool was called and returned a result.
-      if (!result) {
-        throw new Error('Retraining tool failed to execute.');
-      }
+      const result = await retrainTranslationModelPrompt.generate({input});
+      const toolResponse = result.toolRequest?.tool.output;
 
+      if (!toolResponse) {
+        // If the model didn't use the tool, we might want to handle it.
+        // For this case, let's assume it should always be used.
+        const textResponse = result.text;
+        if (textResponse) {
+          return {
+            success: false,
+            message: `Model did not perform retraining. It responded with: ${textResponse}`,
+          };
+        }
+        throw new Error('Retraining tool was not called by the model.');
+      }
+      
       // Adapt the tool's output to the flow's output schema
-      return { // Return type must match the flow's output schema
-        success: true,
-        message: result.message,
+      return {
+        success: toolResponse.success,
+        message: toolResponse.message,
       };
     } catch (error: any) {
       console.error('Error retraining translation model:', error);
