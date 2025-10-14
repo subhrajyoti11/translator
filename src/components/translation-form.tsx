@@ -110,7 +110,7 @@ export function TranslationForm() {
                 onValueChange={(value: Language) => setSourceLanguage(value)}
                 name="sourceLanguage"
               >
-                <SelectTrigger className="w-auto md:w-[180px] bg-secondary border-0">
+                <SelectTrigger className="w-auto md:w-[180px] bg-secondary border">
                   <Languages className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
