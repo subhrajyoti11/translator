@@ -69,28 +69,28 @@ export function RetrainingForm() {
   }
 
   return (
-    <Card className="shadow-2xl shadow-primary/10">
+    <Card className="shadow-2xl shadow-primary/10 border border-border/50 glass-effect-light dark:glass-effect-dark-enhanced hover-lift-light dark:hover-lift-dark">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">
+          <CardHeader className="pb-6">
+            <CardTitle className="font-headline text-2xl mb-2 text-gradient-light dark:text-gradient-dark">
               Submit a Correction
             </CardTitle>
             <CardDescription>
-              Provide the original text and your improved English translation.
+              Help us improve by providing the original text and your improved English translation.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 pt-0">
             <FormField
               control={form.control}
               name="originalText"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Original Text (Nepali or Sinhalese)</FormLabel>
+                  <FormLabel className="text-base font-medium">Original Text (Nepali or Sinhalese)</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Enter the original text here..."
-                      className="min-h-[150px] resize-y"
+                      className="min-h-[150px] resize-y bg-background/50 border-border/50 focus:border-primary/50 transition-colors"
                       {...field}
                     />
                   </FormControl>
@@ -103,11 +103,11 @@ export function RetrainingForm() {
               name="translatedText"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Correct English Translation</FormLabel>
+                  <FormLabel className="text-base font-medium">Correct English Translation</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Enter the correct English translation here..."
-                      className="min-h-[150px] resize-y"
+                      className="min-h-[150px] resize-y bg-background/50 border-border/50 focus:border-primary/50 transition-colors"
                       {...field}
                     />
                   </FormControl>
@@ -116,11 +116,11 @@ export function RetrainingForm() {
               )}
             />
           </CardContent>
-          <CardFooter>
+          <CardFooter className="pt-6">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full text-lg py-6"
+              className="w-full text-lg py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
             >
               {isSubmitting ? (

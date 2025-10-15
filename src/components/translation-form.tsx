@@ -96,56 +96,61 @@ export function TranslationForm() {
     (activeTab === 'pdf' && !pdfFile);
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* Input Column */}
-        <Card className="shadow-2xl shadow-primary/10">
-          <CardHeader>
+        <Card className="shadow-2xl shadow-primary/10 border border-border/50 glass-effect-light dark:glass-effect-dark-enhanced hover-lift-light dark:hover-lift-dark">
+          <CardHeader className="pb-6">
             <div className="flex justify-between items-center">
-              <CardTitle className="font-headline text-2xl">
-                Original Document
-              </CardTitle>
+              <div>
+                <CardTitle className="font-headline text-2xl mb-2 text-gradient-light dark:text-gradient-dark">
+                  Original Document
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Enter your text or upload a file to translate
+                </p>
+              </div>
               <Select
                 value={sourceLanguage}
                 onValueChange={(value: Language) => setSourceLanguage(value)}
                 name="sourceLanguage"
               >
-                <SelectTrigger className="w-auto md:w-[180px] bg-secondary border">
+                <SelectTrigger className="w-auto md:w-[180px] bg-secondary/50 border border-border/50 hover:border-primary/20 transition-colors">
                   <Languages className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Nepali">Nepali</SelectItem>
-                  <SelectItem value="Sinhalese">Sinhalese</SelectItem>
+                  <SelectItem value="Nepali">🇳🇵 Nepali</SelectItem>
+                  <SelectItem value="Sinhalese">🇱🇰 Sinhalese</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <Tabs
               defaultValue="text"
               className="w-full"
               onValueChange={(value) => setActiveTab(value as Tab)}
             >
-              <TabsList className="grid w-full grid-cols-3 bg-secondary">
-                <TabsTrigger value="text">
+              <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-border/50">
+                <TabsTrigger value="text" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <BookText className="mr-2 h-4 w-4" />
                   Text
                 </TabsTrigger>
-                <TabsTrigger value="image">
+                <TabsTrigger value="image" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <FileImage className="mr-2 h-4 w-4" />
                   Image
                 </TabsTrigger>
-                <TabsTrigger value="pdf">
+                <TabsTrigger value="pdf" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <FileText className="mr-2 h-4 w-4" />
                   PDF
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="text" className="mt-4">
+              <TabsContent value="text" className="mt-6">
                 <Textarea
                   name="text"
                   placeholder="Enter or paste your text here..."
-                  className="min-h-[250px] text-base resize-y bg-background"
+                  className="min-h-[250px] text-base resize-y bg-background/50 border-border/50 focus:border-primary/50 transition-colors"
                   value={sourceText}
                   onChange={(e) => {
                     setSourceText(e.target.value);
@@ -155,21 +160,26 @@ export function TranslationForm() {
                   }}
                 />
               </TabsContent>
-              <TabsContent value="image" className="mt-4">
-                <div className="min-h-[250px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-4 text-center hover:border-primary transition-colors">
+              <TabsContent value="image" className="mt-6">
+                <div className="min-h-[250px] border-2 border-dashed border-border/50 rounded-xl flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group">
                   {imagePreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={imagePreview}
                       alt="Image preview"
-                      className="max-h-[200px] rounded-md object-contain"
+                      className="max-h-[200px] rounded-lg object-contain shadow-lg"
                     />
                   ) : (
-                    <div className="space-y-2">
-                      <FileImage className="h-10 w-10 mx-auto text-muted-foreground" />
-                      <p className="text-muted-foreground">
-                        Upload an image to extract text.
-                      </p>
+                    <div className="space-y-3">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto group-hover:bg-primary/20 group-hover:border-primary/30 transition-colors">
+                        <FileImage className="h-8 w-8 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-foreground font-medium">Upload an image</p>
+                        <p className="text-sm text-muted-foreground">
+                          Drag and drop or click to select
+                        </p>
+                      </div>
                     </div>
                   )}
                   <Input
@@ -177,26 +187,35 @@ export function TranslationForm() {
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="mt-4 max-w-sm"
+                    className="mt-4 max-w-sm bg-background/50 border-border/50"
                   />
                 </div>
               </TabsContent>
-              <TabsContent value="pdf" className="mt-4">
-                <div className="min-h-[250px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-4 text-center hover:border-primary transition-colors">
+              <TabsContent value="pdf" className="mt-6">
+                <div className="min-h-[250px] border-2 border-dashed border-border/50 rounded-xl flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group">
                   {pdfFile ? (
-                    <div className="space-y-2">
-                      <FileText className="h-10 w-10 mx-auto text-primary" />
-                      <p className="font-medium">{pdfFile.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Ready to translate.
-                      </p>
+                    <div className="space-y-3">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+                        <FileText className="h-8 w-8 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{pdfFile.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Ready to translate
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
-                      <p className="text-muted-foreground">
-                        Upload a PDF to extract text.
-                      </p>
+                    <div className="space-y-3">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto group-hover:bg-primary/20 group-hover:border-primary/30 transition-colors">
+                        <Upload className="h-8 w-8 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-foreground font-medium">Upload a PDF</p>
+                        <p className="text-sm text-muted-foreground">
+                          Drag and drop or click to select
+                        </p>
+                      </div>
                     </div>
                   )}
                   <Input
@@ -204,7 +223,7 @@ export function TranslationForm() {
                     type="file"
                     accept=".pdf"
                     onChange={handlePdfChange}
-                    className="mt-4 max-w-sm"
+                    className="mt-4 max-w-sm bg-background/50 border-border/50"
                   />
                 </div>
               </TabsContent>
@@ -213,7 +232,7 @@ export function TranslationForm() {
             <Button
               type="submit"
               disabled={isSubmitDisabled}
-              className="w-full mt-6 text-lg py-6"
+              className="w-full mt-8 text-lg py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
             >
               {isLoading ? (
@@ -231,34 +250,51 @@ export function TranslationForm() {
         </Card>
 
         {/* Output Column */}
-        <Card className="min-h-full bg-secondary/50">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">
-              English Translation
-            </CardTitle>
+        <Card className="min-h-full glass-effect-light dark:glass-effect-dark-enhanced border border-border/50 shadow-2xl shadow-primary/10 hover-lift-light dark:hover-lift-dark">
+          <CardHeader className="pb-6">
+            <div>
+              <CardTitle className="font-headline text-2xl mb-2 text-gradient-light dark:text-gradient-dark">
+                English Translation
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Your translated text will appear here
+              </p>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {isLoading ? (
-              <div className="space-y-3 pt-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
+              <div className="space-y-4 pt-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse delay-100"></div>
+                  <div className="w-2 h-2 bg-primary/40 rounded-full animate-pulse delay-200"></div>
+                </div>
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
               </div>
             ) : error ? (
-              <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
+              <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+                <AlertTitle>Translation Error</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             ) : translatedText ? (
-              <p className="text-base whitespace-pre-wrap font-body leading-relaxed">
-                {translatedText}
-              </p>
+              <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+                <p className="text-base whitespace-pre-wrap font-body leading-relaxed">
+                  {translatedText}
+                </p>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full pt-20 text-center text-muted-foreground">
-                <Languages className="h-12 w-12 mb-4" />
-                <p className="text-lg">Your English translation will appear here.</p>
+                <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-6">
+                  <Languages className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Ready to translate</h3>
+                <p className="text-sm">Enter your text or upload a file to get started</p>
               </div>
             )}
           </CardContent>
