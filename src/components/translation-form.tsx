@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   BookText,
   Languages,
@@ -9,6 +9,12 @@ import {
   FileText,
   Upload,
   ArrowRight,
+  Mic,
+  Square,
+  Volume2,
+  VolumeX,
+  Trash2,
+  CheckCircle2,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -41,6 +47,189 @@ export function TranslationForm() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  // Voice: Speech-to-Text and Text-to-Speech
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Voice Assistant box state
+  const [assistantTranscript, setAssistantTranscript] = useState('');
+  const [assistantIsRecording, setAssistantIsRecording] = useState(false);
+  const [assistantIsSpeaking, setAssistantIsSpeaking] = useState(false);
+  const assistantRecognitionRef = useRef<any>(null);
+  const assistantUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Map selected source language to appropriate STT locale
+  const getSttLocale = (lang: Language) => {
+    switch (lang) {
+      case 'Nepali':
+        return 'ne-NP';
+      case 'Sinhalese':
+        return 'si-LK';
+      default:
+        return 'en-US';
+    }
+  };
+
+  // Initialize speech synthesis stop on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        window.speechSynthesis?.cancel();
+      } catch {}
+    };
+  }, []);
+
+  // Start browser speech recognition (Web Speech API)
+  const startRecording = () => {
+    if (typeof window === 'undefined') return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError('Speech recognition is not supported in this browser.');
+      return;
+    }
+    const recognition: any = new SR();
+    recognition.lang = getSttLocale(sourceLanguage);
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          setSourceText((prev) => (prev ? prev + ' ' + transcript : transcript));
+        } else {
+          interim += transcript;
+        }
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+    };
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  };
+
+  const stopRecording = () => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setIsRecording(false);
+  };
+
+  // Speak given text using Speech Synthesis API
+  const speakText = (text: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      // Prefer English output for translated text
+      utter.lang = 'en-US';
+      utter.onend = () => setIsSpeaking(false);
+      utter.onerror = () => setIsSpeaking(false);
+      utteranceRef.current = utter;
+      window.speechSynthesis.speak(utter);
+      setIsSpeaking(true);
+    } catch {
+      // no-op
+    }
+  };
+
+  const stopSpeaking = () => {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
+    setIsSpeaking(false);
+  };
+
+  // Voice Assistant handlers
+  const startAssistantRecording = () => {
+    if (typeof window === 'undefined') return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError('Speech recognition is not supported in this browser.');
+      return;
+    }
+    const recognition: any = new SR();
+    // Use English by default for assistant
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onresult = (event: any) => {
+      let finalText = assistantTranscript;
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const { transcript } = event.results[i][0];
+        if (event.results[i].isFinal) {
+          finalText = finalText ? finalText + ' ' + transcript : transcript;
+        }
+      }
+      setAssistantTranscript(finalText);
+    };
+    recognition.onerror = () => {
+      setAssistantIsRecording(false);
+    };
+    recognition.onend = () => {
+      setAssistantIsRecording(false);
+    };
+    assistantRecognitionRef.current = recognition;
+    recognition.start();
+    setAssistantIsRecording(true);
+  };
+
+  const stopAssistantRecording = () => {
+    assistantRecognitionRef.current?.stop();
+    assistantRecognitionRef.current = null;
+    setAssistantIsRecording(false);
+  };
+
+  const speakAssistant = (text: string) => {
+    if (typeof window === 'undefined' || !text.trim()) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(`You said: ${text}`);
+      utter.lang = 'en-US';
+      utter.onend = () => setAssistantIsSpeaking(false);
+      utter.onerror = () => setAssistantIsSpeaking(false);
+      assistantUtteranceRef.current = utter;
+      window.speechSynthesis.speak(utter);
+      setAssistantIsSpeaking(true);
+    } catch {}
+  };
+
+  const stopAssistantSpeaking = () => {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
+    setAssistantIsSpeaking(false);
+  };
+
+  // Translate Assistant transcript to English using same flow as main form
+  const translateAssistant = async () => {
+    const text = assistantTranscript.trim();
+    if (!text) {
+      setError('Please say something to translate.');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await translateText({ text, sourceLanguage });
+      setTranslatedText(result.translatedText);
+    } catch (e) {
+      setError('Failed to translate. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,9 +286,9 @@ export function TranslationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
         {/* Input Column */}
-        <Card className="shadow-2xl shadow-primary/10 border border-border/50 glass-effect-light dark:glass-effect-dark-enhanced hover-lift-light dark:hover-lift-dark">
+        <Card className="h-full flex flex-col shadow-lg shadow-primary/10 border border-primary/30 glass-effect-light dark:glass-effect-dark-enhanced hover-lift-light dark:hover-lift-dark">
           <CardHeader className="pb-6">
             <div className="flex justify-between items-center">
               <div>
@@ -126,7 +315,7 @@ export function TranslationForm() {
               </Select>
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 flex-1">
             <Tabs
               defaultValue="text"
               className="w-full"
@@ -146,11 +335,11 @@ export function TranslationForm() {
                   PDF
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="text" className="mt-6">
+              <TabsContent value="text" className="mt-4">
                 <Textarea
                   name="text"
                   placeholder="Enter or paste your text here..."
-                  className="min-h-[250px] text-base resize-y bg-background/50 border-border/50 focus:border-primary/50 transition-colors"
+                  className="min-h-[180px] text-base resize-y bg-background/50 border-border/50 focus:border-primary/50 transition-colors"
                   value={sourceText}
                   onChange={(e) => {
                     setSourceText(e.target.value);
@@ -160,8 +349,8 @@ export function TranslationForm() {
                   }}
                 />
               </TabsContent>
-              <TabsContent value="image" className="mt-6">
-                <div className="min-h-[250px] border-2 border-dashed border-border/50 rounded-xl flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group">
+              <TabsContent value="image" className="mt-4">
+                <div className="min-h-[200px] border-2 border-dashed border-border/50 rounded-xl flex flex-col items-center justify-center p-4 text-center hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group">
                   {imagePreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -191,8 +380,8 @@ export function TranslationForm() {
                   />
                 </div>
               </TabsContent>
-              <TabsContent value="pdf" className="mt-6">
-                <div className="min-h-[250px] border-2 border-dashed border-border/50 rounded-xl flex flex-col items-center justify-center p-6 text-center hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group">
+              <TabsContent value="pdf" className="mt-4">
+                <div className="min-h-[200px] border-2 border-dashed border-border/50 rounded-xl flex flex-col items-center justify-center p-4 text-center hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 group">
                   {pdfFile ? (
                     <div className="space-y-3">
                       <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
@@ -250,7 +439,7 @@ export function TranslationForm() {
         </Card>
 
         {/* Output Column */}
-        <Card className="min-h-full glass-effect-light dark:glass-effect-dark-enhanced border border-border/50 shadow-2xl shadow-primary/10 hover-lift-light dark:hover-lift-dark">
+        <Card className="h-full flex flex-col glass-effect-light dark:glass-effect-dark-enhanced border border-primary/30 shadow-lg shadow-primary/10 hover-lift-light dark:hover-lift-dark">
           <CardHeader className="pb-6">
             <div>
               <CardTitle className="font-headline text-2xl mb-2 text-gradient-light dark:text-gradient-dark">
@@ -261,7 +450,7 @@ export function TranslationForm() {
               </p>
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 flex-1">
             {isLoading ? (
               <div className="space-y-4 pt-4">
                 <div className="flex items-center space-x-2">
@@ -283,11 +472,26 @@ export function TranslationForm() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             ) : translatedText ? (
-              <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+              <>
+                <div className="flex items-center justify-end gap-2 mb-3">
+                  {!isSpeaking ? (
+                    <Button type="button" variant="outline" size="sm" onClick={() => speakText(translatedText)} className="border-primary/50 text-primary">
+                      <Volume2 className="h-4 w-4 mr-2" />
+                      Listen
+                    </Button>
+                  ) : (
+                    <Button type="button" variant="destructive" size="sm" onClick={stopSpeaking} className="border-destructive/50">
+                      <VolumeX className="h-4 w-4 mr-2" />
+                      Stop
+                    </Button>
+                  )}
+                </div>
+              <div className="bg-background/50 rounded-lg p-3 border border-border/50">
                 <p className="text-base whitespace-pre-wrap font-body leading-relaxed">
                   {translatedText}
                 </p>
-              </div>
+                </div>
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full pt-20 text-center text-muted-foreground">
                 <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-6">
@@ -297,6 +501,70 @@ export function TranslationForm() {
                 <p className="text-sm">Enter your text or upload a file to get started</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Voice Assistant Column */}
+        <Card className="h-full flex flex-col glass-effect-light dark:glass-effect-dark-enhanced border border-primary/30 shadow-lg shadow-primary/10 hover-lift-light dark:hover-lift-dark">
+          <CardHeader className="pb-6">
+            <div>
+              <CardTitle className="font-headline text-2xl mb-2 text-gradient-light dark:text-gradient-dark flex items-center gap-2">
+                <Mic className="h-6 w-6 text-primary" /> Voice Assistant
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Tap the mic to speak in your language
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-6 flex-1 flex flex-col">
+            {/* Big Mic Button */}
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={assistantIsRecording ? stopAssistantRecording : startAssistantRecording}
+                className="relative w-28 h-28 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg border-2 border-primary/60 focus:outline-none focus:ring-4 focus:ring-primary/30"
+              >
+                <div className={`absolute inset-0 rounded-full ${assistantIsRecording ? 'animate-ping bg-primary/20' : ''}`}></div>
+                {assistantIsRecording ? (
+                  <Square className="h-8 w-8 text-primary-foreground relative" />
+                ) : (
+                  <Mic className="h-8 w-8 text-primary-foreground relative" />
+                )}
+              </button>
+            </div>
+
+            <p className="text-center text-muted-foreground text-sm">Tap to speak in your language</p>
+
+            {/* Features List */}
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 8+ Indian Languages
+              </div>
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> Offline Speech Recognition
+              </div>
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> Natural Language Processing
+              </div>
+            </div>
+
+            {/* Controls Row */}
+            <div className="mt-auto flex items-center justify-end gap-2">
+              <Button type="button" variant="secondary" size="sm" onClick={() => setAssistantTranscript('')}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+              <Button type="button" size="sm" onClick={translateAssistant} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Translate to English <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+
+            {/* Transcript Box */}
+            <div className="bg-background/50 rounded-lg p-3 border border-border/50 min-h-[100px]">
+              <p className="text-sm whitespace-pre-wrap text-foreground">
+                {assistantTranscript || 'Your voice transcript will appear here.'}
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

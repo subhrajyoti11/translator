@@ -23,7 +23,7 @@ export function Header() {
             <BookMarked className="h-6 w-6 text-primary-foreground" />
           </div>
           <span className="font-headline text-xl font-bold text-gradient-light dark:text-gradient-dark">
-            Bhashaantar AI
+            LexiFlow AI
           </span>
         </Link>
         <div className="flex items-center gap-6">

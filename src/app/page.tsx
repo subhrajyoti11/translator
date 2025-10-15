@@ -19,7 +19,7 @@ export default function Home() {
             </div>
             
             <h1 className="font-headline text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl mb-6 text-gradient-light dark:text-gradient-dark animate-slide-up">
-              Bhashaantar AI
+              LexiFlow AI
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in">
